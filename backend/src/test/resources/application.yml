@@ -19,3 +19,5 @@ app:
   jwt:
     secret: TestOnly-ChangeMe-EmployeeTaskMgmt-HS256-Secret-Key-32chars+
     expiration-ms: 3600000
+  cors:
+    allowed-origins: http://localhost:5173

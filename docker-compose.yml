@@ -1,29 +1,59 @@
-# docker-compose.yml starts local infrastructure with one command.
-# Stage 2 only needs PostgreSQL. More services (e.g. the app itself) can join later.
+# One command starts the whole stack:
+#   docker compose up --build
+#
+# Services talk on the internal Docker network by service name (postgres, backend).
+# Your browser still uses localhost ports mapped below.
 
 services:
   postgres:
-    # Official PostgreSQL image (alpine = small Linux base).
     image: postgres:16-alpine
     container_name: etms-postgres
     environment:
-      # These create the database and login user on first start.
-      POSTGRES_DB: etms
-      POSTGRES_USER: etms
-      POSTGRES_PASSWORD: etms
+      POSTGRES_DB: ${POSTGRES_DB:-etms}
+      POSTGRES_USER: ${DB_USERNAME:-etms}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-etms}
     ports:
-      # Host 5433 → container 5432.
-      # We use 5433 because many Windows machines already run a local Postgres on 5432.
+      # Host 5433 → container 5432 (avoids a local Windows Postgres on 5432).
       - "5433:5432"
     volumes:
-      # Named volume keeps data after "docker compose down" (unless you use -v).
       - etms_pgdata:/var/lib/postgresql/data
     healthcheck:
-      # Spring Boot (or you) can wait until Postgres is really ready.
+      # Hardcoded defaults match POSTGRES_* above (compose env substitution in healthcheck is unreliable).
       test: ["CMD-SHELL", "pg_isready -U etms -d etms"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: etms-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Inside Docker, the DB host is the service name "postgres", port 5432.
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/etms}
+      DB_USERNAME: ${DB_USERNAME:-etms}
+      DB_PASSWORD: ${DB_PASSWORD:-etms}
+      JWT_SECRET: ${JWT_SECRET:-LocalDevOnly-ChangeMe-EmployeeTaskMgmt-HS256-Secret-Key-32chars+}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      # Browser origins for the React UI (Vite 5173 or nginx 3000).
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Browser calls this URL — must be reachable from your machine, not "backend".
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: etms-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   etms_pgdata:

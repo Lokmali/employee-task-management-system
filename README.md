@@ -6,65 +6,49 @@ Full-stack app for assigning and tracking employee tasks.
 
 We build this in small stages so every file is interview-explainable.
 
-## Stage 1 (done) — project skeleton
+## Stages done
 
-- `backend/` Spring Boot 3 app with package folders and `GET /api/health`
-- `frontend/` React + Vite + Tailwind landing page
+1. Project skeleton (Spring Boot + React)
+2. Database + CRUD APIs
+3. Spring Security + JWT
+4. React UI (login, dashboard, CRUD pages)
+5. **Docker + GitHub Actions CI**
 
-## Stage 2 (done) — database and CRUD
-
-- PostgreSQL via `docker-compose.yml`
-- JPA entities: Department, Employee, Task
-- Full CRUD under `/api/departments`, `/api/employees`, `/api/tasks`
-- Employee list: pagination + search by name
-- DTOs + validation + global exception handler
-- Swagger UI at `/swagger-ui.html`
-
-## Stage 3 (done) — Spring Security + JWT
-
-- `User` entity (ADMIN / EMPLOYEE) with optional link to `Employee`
-- `POST /api/auth/register` and `POST /api/auth/login` (BCrypt + JWT)
-- Stateless JWT filter chain; public: auth, health, Swagger
-- ADMIN = full CRUD; EMPLOYEE = GET employees/departments, own tasks, PATCH own task status
-- Swagger Authorize button; 401/403 JSON errors
-- Security integration tests
-
-## Stage 4 (done) — React frontend
-
-- Login / Register with JWT stored in localStorage
-- Protected routes + AuthContext (ADMIN / EMPLOYEE)
-- Dashboard counts, Employees (search + pagination), Departments, Tasks (status filter)
-- Admin-only add/edit/delete buttons hidden for EMPLOYEE
-- `frontend/.env.example` with `VITE_API_URL`
-
-## Later stages
-
-5. App Docker image + CI (GitHub Actions)
-
-## How to run
-
-### 1) Start PostgreSQL
+## Quick start with Docker (all services)
 
 ```bash
-docker compose up -d
+# Optional: copy env template and edit secrets
+copy .env.example .env
+
+docker compose up --build
 ```
 
-Postgres is on **host port 5433** (avoids a local Postgres on 5432).  
-Default JDBC: `jdbc:postgresql://localhost:5433/etms` (user/password: `etms` / `etms`).
+Then open:
 
-### 2) Backend (port 8080)
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- Actuator health: http://localhost:8080/actuator/health
+- Swagger: http://localhost:8080/swagger-ui.html
+- Postgres (host): `localhost:5433`
+
+Stop with `docker compose down`.
+
+## Local development (without full compose)
+
+### Postgres only
+
+```bash
+docker compose up -d postgres
+```
+
+### Backend
 
 ```bash
 cd backend
 mvnw.cmd spring-boot:run
 ```
 
-- Health: http://localhost:8080/api/health
-- Swagger: http://localhost:8080/swagger-ui.html
-
-Optional env overrides: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`
-
-### 3) Frontend (port 5173)
+### Frontend (Vite)
 
 ```bash
 cd frontend
@@ -73,11 +57,26 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — register/login, then use the dashboard.
+Open http://localhost:5173
 
-### Tests (H2 — Docker not required)
+### Tests / CI locally
 
 ```bash
 cd backend
 mvnw.cmd test
+
+cd ../frontend
+npm ci
+npm run build
 ```
+
+## Environment variables
+
+See root `.env.example`. Important ones:
+
+| Variable | Purpose |
+|---|---|
+| `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | PostgreSQL connection |
+| `JWT_SECRET` / `JWT_EXPIRATION_MS` | Token signing |
+| `CORS_ALLOWED_ORIGINS` | Allowed frontend origins (comma-separated) |
+| `VITE_API_URL` | API URL baked into the React build |

@@ -1,5 +1,6 @@
 package com.etms.security;
 
+import com.etms.config.CorsProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,7 +29,7 @@ import java.util.List;
  *
  * <ul>
  *   <li>Stateless sessions (JWT only — no server-side HttpSession)</li>
- *   <li>Public auth, health, and Swagger URLs</li>
+ *   <li>Public auth, health, actuator health, and Swagger URLs</li>
  *   <li>Everything else requires a valid JWT</li>
  *   <li>{@code @EnableMethodSecurity} turns on {@code @PreAuthorize}</li>
  * </ul>
@@ -42,17 +43,20 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
+    private final CorsProperties corsProperties;
 
     public SecurityConfig(
             JwtService jwtService,
             CustomUserDetailsService userDetailsService,
             RestAuthenticationEntryPoint authenticationEntryPoint,
-            RestAccessDeniedHandler accessDeniedHandler
+            RestAccessDeniedHandler accessDeniedHandler,
+            CorsProperties corsProperties
     ) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
@@ -63,9 +67,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Allow the React Vite app (port 5173) to call this API from the browser.
                 .cors(Customizer.withDefaults())
-                // JWT API → CSRF protection is not needed (no browser cookie session).
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -73,39 +75,35 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health").permitAll()
+                        // Docker / orchestrator health probes (Actuator) — public, nothing else exposed.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        // Read-only employee/department access for both roles (method security also applies)
                         .requestMatchers(HttpMethod.GET, "/api/employees/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/departments/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/tasks/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/tasks/*/status").authenticated()
-                        // Everything else (create/update/delete) still needs auth;
-                        // @PreAuthorize decides ADMIN vs EMPLOYEE.
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
-                // Our JWT filter runs before Spring's username/password filter.
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * CORS = Cross-Origin Resource Sharing.
-     * The React app runs on a different port (5173) than the API (8080),
-     * so the browser needs this allow-list before it sends JWT requests.
+     * CORS origins come from env {@code CORS_ALLOWED_ORIGINS} (comma-separated).
+     * Needed because the React UI and the API usually run on different ports/hosts.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(corsProperties.allowedOriginList());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -115,13 +113,11 @@ public class SecurityConfig {
         return source;
     }
 
-    /** BCrypt hashes passwords (one-way). Used on register and when checking login. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /** Tells Spring how to load users and check passwords. */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
@@ -129,7 +125,6 @@ public class SecurityConfig {
         return provider;
     }
 
-    /** Used by AuthService during login: authenticationManager.authenticate(...). */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

@@ -89,6 +89,14 @@
         </dependency>
 
         <!--
+          Actuator: ops endpoints. We only expose /actuator/health for Docker/K8s probes.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!--
           JJWT: create and parse JWT tokens.
           api = interfaces we compile against; impl/jackson = runtime only.
         -->
