@@ -1,0 +1,13 @@
+# application.yml is the main config file Spring Boot reads on startup.
+# YAML uses indentation instead of dots (server.port in properties → server.port here).
+
+server:
+  # Embedded Tomcat listens on this port.
+  port: 8080
+
+spring:
+  application:
+    # Shown in logs. Useful later when we have more than one service.
+    name: employee-task-management
+
+# Database, JPA, JWT, and Swagger settings will be added in later stages.

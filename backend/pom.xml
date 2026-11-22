@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  pom.xml is Maven's project file.
+  Maven reads this to know: Java version, Spring Boot version, and which libraries to download.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- modelVersion is always 4.0.0 for modern Maven projects. -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      Parent POM: we inherit default plugin versions and dependency versions
+      from Spring Boot, so we do not type versions on each starter below.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/>
+    </parent>
+
+    <!-- Unique coordinates of THIS project. -->
+    <groupId>com.etms</groupId>
+    <artifactId>employee-task-management</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>employee-task-management</name>
+    <description>Employee Task Management System backend</description>
+
+    <properties>
+        <!-- Compile and run as Java 17, even if the machine has a newer JDK. -->
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <!--
+          Web starter: embedded Tomcat + Spring MVC + Jackson (JSON).
+          This lets us write REST APIs with @RestController.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+          Validation starter: @NotBlank, @Email, @Valid, etc.
+          We add it now so later stages can validate request DTOs.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!--
+          Test starter: JUnit 5 + MockMvc + AssertJ + Mockito.
+          scope=test means it is NOT included in the final jar.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Builds an executable fat jar: java -jar target/....jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
