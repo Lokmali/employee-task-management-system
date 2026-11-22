@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,10 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST API for employees: /api/employees
- *
- * Pagination query params (Spring Data):
- * {@code ?page=0&size=10&sort=name,asc}
- * Optional search: {@code ?name=ali}
+ * ADMIN = full CRUD. EMPLOYEE = GET only (with pagination/search).
  */
 @RestController
 @RequestMapping("/api/employees")
@@ -37,6 +35,7 @@ public class EmployeeController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public Page<EmployeeResponse> getAll(
             @RequestParam(required = false) String name,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
@@ -45,17 +44,20 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public EmployeeResponse getById(@PathVariable Long id) {
         return employeeService.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public EmployeeResponse create(@Valid @RequestBody EmployeeRequest request) {
         return employeeService.create(request);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EmployeeResponse update(
             @PathVariable Long id,
             @Valid @RequestBody EmployeeRequest request
@@ -65,6 +67,7 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         employeeService.delete(id);
     }

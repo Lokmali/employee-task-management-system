@@ -2,7 +2,7 @@
 
 Full-stack app for assigning and tracking employee tasks.
 
-**Stack:** Java 17, Spring Boot 3.5.x, Maven, PostgreSQL, Spring Security + JWT (later), React (Vite) + Tailwind CSS, Docker, GitHub Actions.
+**Stack:** Java 17, Spring Boot 3.5.x, Maven, PostgreSQL, Spring Security + JWT, React (Vite) + Tailwind CSS, Docker, GitHub Actions.
 
 We build this in small stages so every file is interview-explainable.
 
@@ -19,12 +19,19 @@ We build this in small stages so every file is interview-explainable.
 - Employee list: pagination + search by name
 - DTOs + validation + global exception handler
 - Swagger UI at `/swagger-ui.html`
-- Employee MockMvc + service unit tests
+
+## Stage 3 (done) — Spring Security + JWT
+
+- `User` entity (ADMIN / EMPLOYEE) with optional link to `Employee`
+- `POST /api/auth/register` and `POST /api/auth/login` (BCrypt + JWT)
+- Stateless JWT filter chain; public: auth, health, Swagger
+- ADMIN = full CRUD; EMPLOYEE = GET employees/departments, own tasks, PATCH own task status
+- Swagger Authorize button; 401/403 JSON errors
+- Security integration tests
 
 ## Later stages
 
-3. Spring Security + JWT
-4. More React screens (login, dashboard, employees, tasks)
+4. React screens (login, dashboard, employees, tasks)
 5. App Docker image + CI (GitHub Actions)
 
 ## How to run
@@ -35,8 +42,8 @@ We build this in small stages so every file is interview-explainable.
 docker compose up -d
 ```
 
-Postgres is exposed on **host port 5433** (avoids clashing with a local Postgres on 5432).
-Default JDBC URL: `jdbc:postgresql://localhost:5433/etms` (user/password: `etms` / `etms`).
+Postgres is on **host port 5433** (avoids a local Postgres on 5432).  
+Default JDBC: `jdbc:postgresql://localhost:5433/etms` (user/password: `etms` / `etms`).
 
 ### 2) Backend (port 8080)
 
@@ -48,7 +55,7 @@ mvnw.cmd spring-boot:run
 - Health: http://localhost:8080/api/health
 - Swagger: http://localhost:8080/swagger-ui.html
 
-Optional env overrides: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+Optional env overrides: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`
 
 ### 3) Frontend (port 5173)
 
@@ -58,7 +65,7 @@ npm install
 npm run dev
 ```
 
-### Tests (use in-memory H2 — Docker not required)
+### Tests (H2 — Docker not required)
 
 ```bash
 cd backend

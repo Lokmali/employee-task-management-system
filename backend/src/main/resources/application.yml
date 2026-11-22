@@ -26,6 +26,14 @@ spring:
       hibernate:
         format_sql: true
 
+# JWT settings — override in real environments with env vars (never commit a real secret).
+app:
+  jwt:
+    # Must be long enough for HS256 (at least 32 characters / 256 bits).
+    secret: ${JWT_SECRET:LocalDevOnly-ChangeMe-EmployeeTaskMgmt-HS256-Secret-Key-32chars+}
+    # Token lifetime in milliseconds (default = 24 hours).
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
 # Swagger UI: http://localhost:8080/swagger-ui.html
 springdoc:
   api-docs:

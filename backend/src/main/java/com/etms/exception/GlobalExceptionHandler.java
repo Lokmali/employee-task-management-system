@@ -4,6 +4,9 @@ import com.etms.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,6 +21,10 @@ import java.util.Map;
  *
  * {@code @RestControllerAdvice} = advice that applies to all {@code @RestController}s
  * and writes the return value as JSON (like {@code @RestController}).
+ *
+ * <p>Note: filter-chain 401/403 also use {@code RestAuthenticationEntryPoint}
+ * and {@code RestAccessDeniedHandler}. These handlers cover exceptions thrown
+ * inside controllers / {@code @PreAuthorize}.</p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,6 +43,38 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler({UnauthorizedException.class, BadCredentialsException.class})
+    public ResponseEntity<ErrorResponse> handleUnauthorized(
+            RuntimeException ex,
+            HttpServletRequest request
+    ) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler({ForbiddenException.class, AccessDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleForbidden(
+            RuntimeException ex,
+            HttpServletRequest request
+    ) {
+        String message = ex instanceof AccessDeniedException
+                ? "You do not have permission to perform this action."
+                : ex.getMessage();
+        return build(HttpStatus.FORBIDDEN, message, request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(
+            AuthenticationException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication required. Please log in and send a Bearer token.",
+                request.getRequestURI(),
+                null
+        );
     }
 
     /**

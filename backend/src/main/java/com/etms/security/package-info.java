@@ -1,5 +1,4 @@
 /**
- * JWT filters, authentication entry point, and SecurityFilterChain.
- * We add Spring Security in a later stage.
+ * JWT filters, authentication entry point, SecurityFilterChain, and UserDetails helpers.
  */
 package com.etms.security;

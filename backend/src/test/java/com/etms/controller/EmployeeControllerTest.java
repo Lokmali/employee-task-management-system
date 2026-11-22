@@ -8,6 +8,7 @@ import com.etms.service.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
@@ -38,7 +39,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * {@code @MockitoBean} replaces EmployeeService with a mock.
  * {@code @Import(GlobalExceptionHandler.class)} so 404/validation still return our JSON.
  */
+/**
+ * addFilters = false → skip the JWT security filter chain so these tests
+ * stay focused on controller JSON behaviour (security has its own tests).
+ */
 @WebMvcTest(EmployeeController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class EmployeeControllerTest {
 

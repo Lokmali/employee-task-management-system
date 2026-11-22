@@ -14,3 +14,8 @@ spring:
       ddl-auto: create-drop
     show-sql: false
     open-in-view: false
+
+app:
+  jwt:
+    secret: TestOnly-ChangeMe-EmployeeTaskMgmt-HS256-Secret-Key-32chars+
+    expiration-ms: 3600000
