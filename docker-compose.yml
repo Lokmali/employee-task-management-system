@@ -1,0 +1,29 @@
+# docker-compose.yml starts local infrastructure with one command.
+# Stage 2 only needs PostgreSQL. More services (e.g. the app itself) can join later.
+
+services:
+  postgres:
+    # Official PostgreSQL image (alpine = small Linux base).
+    image: postgres:16-alpine
+    container_name: etms-postgres
+    environment:
+      # These create the database and login user on first start.
+      POSTGRES_DB: etms
+      POSTGRES_USER: etms
+      POSTGRES_PASSWORD: etms
+    ports:
+      # Host 5433 → container 5432.
+      # We use 5433 because many Windows machines already run a local Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      # Named volume keeps data after "docker compose down" (unless you use -v).
+      - etms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Spring Boot (or you) can wait until Postgres is really ready.
+      test: ["CMD-SHELL", "pg_isready -U etms -d etms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  etms_pgdata:

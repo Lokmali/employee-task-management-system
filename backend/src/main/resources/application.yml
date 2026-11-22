@@ -1,13 +1,34 @@
-# application.yml is the main config file Spring Boot reads on startup.
-# YAML uses indentation instead of dots (server.port in properties → server.port here).
+# application.yml — Spring Boot reads this on startup.
+# ${VAR:default} means: use environment variable VAR if set, otherwise use default.
 
 server:
-  # Embedded Tomcat listens on this port.
   port: 8080
 
 spring:
   application:
-    # Shown in logs. Useful later when we have more than one service.
     name: employee-task-management
 
-# Database, JPA, JWT, and Swagger settings will be added in later stages.
+  datasource:
+    # JDBC URL points at the Docker Postgres from docker-compose.yml
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/etms}
+    username: ${DB_USERNAME:etms}
+    password: ${DB_PASSWORD:etms}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # update = create missing tables / columns automatically (good for learning).
+      # Later we will switch to validate + Flyway/Liquibase migrations.
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# Swagger UI: http://localhost:8080/swagger-ui.html
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

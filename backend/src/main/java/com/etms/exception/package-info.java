@@ -1,5 +1,5 @@
 /**
  * Custom exceptions and the global {@code @RestControllerAdvice} handler.
- * We add these in a later stage so every API error returns the same JSON shape.
+ * Controllers stay clean: throw an exception, the handler builds the error JSON.
  */
 package com.etms.exception;
