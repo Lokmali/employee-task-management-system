@@ -29,9 +29,16 @@ We build this in small stages so every file is interview-explainable.
 - Swagger Authorize button; 401/403 JSON errors
 - Security integration tests
 
+## Stage 4 (done) — React frontend
+
+- Login / Register with JWT stored in localStorage
+- Protected routes + AuthContext (ADMIN / EMPLOYEE)
+- Dashboard counts, Employees (search + pagination), Departments, Tasks (status filter)
+- Admin-only add/edit/delete buttons hidden for EMPLOYEE
+- `frontend/.env.example` with `VITE_API_URL`
+
 ## Later stages
 
-4. React screens (login, dashboard, employees, tasks)
 5. App Docker image + CI (GitHub Actions)
 
 ## How to run
@@ -61,9 +68,12 @@ Optional env overrides: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `J
 
 ```bash
 cd frontend
+copy .env.example .env
 npm install
 npm run dev
 ```
+
+Open http://localhost:5173 — register/login, then use the dashboard.
 
 ### Tests (H2 — Docker not required)
 

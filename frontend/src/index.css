@@ -1,2 +1,13 @@
-/* Tailwind v4: this one line loads all utility classes (bg-slate-950, flex, etc.). */
 @import "tailwindcss";
+
+/* Small global defaults so forms look consistent. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  background: #f1f5f9;
+}
+
+#root {
+  min-height: 100vh;
+}

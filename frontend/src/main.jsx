@@ -1,11 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
 import App from './App.jsx'
+import './index.css'
 
-// Find the empty <div id="root"> in index.html and render our React tree into it.
+// Mount the React app into <div id="root"> from index.html.
 createRoot(document.getElementById('root')).render(
-  // StrictMode runs some checks twice in development to catch mistakes. It is not used in production.
   <StrictMode>
     <App />
   </StrictMode>,
